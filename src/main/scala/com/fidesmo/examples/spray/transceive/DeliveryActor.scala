@@ -85,7 +85,7 @@ class DeliveryActor(val sessionId: UUID) extends Actor with RequestBuilding with
         IO(Http) ! transceive
         context.become(waitForOperationId(true))
       }
-    case _ =>
+    case TransceiveResponse(_, _, _) =>
       // Something failed!
       IO(Http) ! failure
   }
