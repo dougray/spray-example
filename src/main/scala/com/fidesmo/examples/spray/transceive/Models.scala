@@ -3,16 +3,30 @@ package com.fidesmo.examples.spray.transceive
 import java.util.UUID
 
 import org.apache.commons.codec.binary.Hex
-
+import spray.http.{ StatusCode, StatusCodes }
 import spray.json._
 
 object Models extends DefaultJsonProtocol {
   case class ServiceDeliveryRequest(sessionId: UUID, serviceId: String)
   case class ServiceDescription(title: String)
   case class Transceive(commands: Seq[Array[Byte]])
-  case class TransceiveResponse(success: Boolean, operationId: UUID, responses: Option[Seq[Array[Byte]]])
+  case class TransceiveResponse(operationId: UUID, statusCode: StatusCode, responses: Option[Seq[Array[Byte]]])
   case class OperationResponse(operationId: UUID)
   case class ServiceStatus(success: Boolean, message: String)
+
+  implicit object StatusCodeFormat extends JsonFormat[StatusCode] {
+    val errorMsg = "Integer status code expected"
+    def write(statusCode: StatusCode) = JsNumber(statusCode.intValue)
+    def read(value: JsValue) = value match {
+      case JsNumber(statusCode) => {
+        if (statusCode.isValidInt)
+          StatusCode.int2StatusCode(statusCode.intValue)
+        else
+          deserializationError(errorMsg)
+      }
+      case _ => deserializationError(errorMsg)
+    }
+  }
 
   implicit object ByteArrayFormat extends JsonFormat[Array[Byte]] {
     def write(byteArray: Array[Byte]) = JsString(Hex.encodeHexString(byteArray).toUpperCase)
