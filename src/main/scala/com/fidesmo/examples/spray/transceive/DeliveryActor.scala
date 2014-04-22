@@ -76,7 +76,7 @@ class DeliveryActor(val sessionId: UUID) extends Actor with RequestBuilding with
 
   // This state awaits the response of a transceive
   def waitingForResponse(waitingForId: UUID, last: Boolean): Receive = {
-    case TransceiveResponse(true, waitingForId, Some(responses)) =>
+    case TransceiveResponse(_, StatusCodes.OK, Some(responses)) =>
       if(last) {
         // If it's the last we are done
         IO(Http) ! success
@@ -85,7 +85,7 @@ class DeliveryActor(val sessionId: UUID) extends Actor with RequestBuilding with
         IO(Http) ! transceive
         context.become(waitForOperationId(true))
       }
-    case TransceiveResponse(false, waitingForId, None) =>
+    case _ =>
       // Something failed!
       IO(Http) ! failure
   }
