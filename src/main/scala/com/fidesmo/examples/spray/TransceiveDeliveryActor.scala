@@ -1,4 +1,4 @@
-package com.fidesmo.examples.spray.transceive
+package com.fidesmo.examples.spray
 
 import java.util.UUID
 import java.util.concurrent.TimeUnit
@@ -14,8 +14,8 @@ import spray.can.Http
 import spray.http._
 import spray.httpx._
 
-class DeliveryActor(val sessionId: UUID) extends Actor with RequestBuilding with ResponseTransformation {
-  import DeliveryActor.Start
+class TransceiveDeliveryActor(val sessionId: UUID) extends Actor with RequestBuilding with ResponseTransformation {
+  import WebServiceActor.Start
   import spray.httpx.SprayJsonSupport._
   import Models._
 
@@ -35,7 +35,7 @@ class DeliveryActor(val sessionId: UUID) extends Actor with RequestBuilding with
   val baseUrl = Uri(config.getString("callback-url-base"))
 
   // Create an individual callback URL for each session
-  val callbackUrl = baseUrl.withPath(baseUrl.path / sessionId.toString)
+  val callbackUrl = baseUrl.withPath(baseUrl.path / "transceive" / sessionId.toString)
 
   // Adds authentication and session id headers
   val headers = addHeader("app_id", appId) ~> addHeader("app_key", appKey) ~>
@@ -92,7 +92,6 @@ class DeliveryActor(val sessionId: UUID) extends Actor with RequestBuilding with
 
 }
 
-object DeliveryActor {
-  case object Start
-  def props(sessionId: UUID) = Props(classOf[DeliveryActor], sessionId)
+object TransceiveDeliveryActor {
+  def props(sessionId: UUID) = Props(classOf[TransceiveDeliveryActor], sessionId)
 }

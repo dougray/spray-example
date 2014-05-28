@@ -1,4 +1,4 @@
-package com.fidesmo.examples.spray.transceive
+package com.fidesmo.examples.spray
 
 import akka.actor.{ ActorSystem, Props }
 import akka.io.IO
