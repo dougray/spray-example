@@ -16,14 +16,16 @@ object Models extends DefaultJsonProtocol {
   case class TransceiveResponse(operationId: UUID, statusCode: StatusCode, responses: Option[Seq[Array[Byte]]])
 
   case class GetCardResponse(operationId: UUID, statusCode: StatusCode, uid: Option[Array[Byte]],
-    newCard: Option[Boolean], checksum: Option[String])
+    newCard: Option[Boolean])
   case class GenericResponse(operationId: UUID, statusCode: StatusCode)
   case class KeyPair(keyA: Array[Byte], keyB: Array[Byte])
   case class Trailer(sector: Int, keyPair: KeyPair, accessBits: Array[Byte])
   case class InitializeRequest(trailers: Seq[Trailer])
+  case class BlockIndex(sector: Int, block: Int)
   case class Block(sector: Int, block: Int, data: Array[Byte])
   case class WriteRequest(blocks: Seq[Block], checksum: String)
-
+  case class ReadRequest(blocks: Seq[BlockIndex])
+  case class ReadResponse(operationId: UUID, statusCode: StatusCode, blocks: Seq[Block], checksum: String)
 
   implicit object StatusCodeFormat extends JsonFormat[StatusCode] {
     val errorMsg = "Integer status code expected"
@@ -67,12 +69,14 @@ object Models extends DefaultJsonProtocol {
   implicit val transceiveFormat = jsonFormat1(Transceive)
   implicit val transceiveResponseFormat = jsonFormat3(TransceiveResponse)
 
-  implicit val getCardResponseFormat = jsonFormat5(GetCardResponse)
+  implicit val getCardResponseFormat = jsonFormat4(GetCardResponse)
   implicit val genericResponseFormat = jsonFormat2(GenericResponse)
   implicit val keyPairFormat = jsonFormat2(KeyPair)
   implicit val trailerFormat = jsonFormat3(Trailer)
   implicit val initializeRequestFormat = jsonFormat1(InitializeRequest)
+  implicit val blockIndexFormat = jsonFormat2(BlockIndex)
   implicit val blockFormat = jsonFormat3(Block)
   implicit val writeRequestFormat = jsonFormat2(WriteRequest)
-
+  implicit val readRequestFormat = jsonFormat1(ReadRequest)
+  implicit val readResponseFormat = jsonFormat4(ReadResponse)
 }

@@ -43,6 +43,13 @@ class WebServiceActor extends HttpServiceActor {
       deliveryActor ! response
       complete(StatusCodes.OK)
     }
+  } ~ path("delivery" / "read" / JavaUUID) { sessionId =>
+    val deliveryActor = context.actorSelection(sessionId.toString)
+    entity(as[ReadResponse]) { response =>
+      // Send response to delivery actor
+      deliveryActor ! response
+      complete(StatusCodes.OK)
+    }
   } ~ path("delivery" / "transceive" / JavaUUID) { sessionId =>
     val deliveryActor = context.actorSelection(sessionId.toString)
     entity(as[TransceiveResponse]) { response =>

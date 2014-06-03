@@ -42,6 +42,7 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with RequestBuildin
   // Create an individual callback URL for each session
   val callbackUrl = baseUrl.withPath(baseUrl.path / "generic" / sessionId.toString)
   val callbackUrlGetCard = baseUrl.withPath(baseUrl.path / "getCard" / sessionId.toString)
+  val callbackUrlRead = baseUrl.withPath(baseUrl.path / "read" / sessionId.toString)
 
 
   // Adds authentication and session id headers
@@ -52,7 +53,7 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with RequestBuildin
   val callbackHeader = addHeader("callbackUrl", callbackUrl.toString)
 
   // Post message to get a mifare card
-  val GetCard = Put(FidesmoMifareGet) ~> headers ~>
+  val getCard = Put(FidesmoMifareGet) ~> headers ~>
     addHeader("callbackUrl", callbackUrlGetCard.toString)
 
   def hex(s: String): Array[Byte] = Hex.decodeHex(s.toCharArray)
@@ -63,17 +64,21 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with RequestBuildin
 
   val InitializePayload = InitializeRequest((0 until 16).map(Trailer(_, TransportKeys, DefaultAccess)))
 
-  val Initialize = Put(FidesmoMifareInitialize, InitializePayload) ~> headers ~>
+  val initialize = Put(FidesmoMifareInitialize, InitializePayload) ~> headers ~>
     callbackHeader
 
+  val blocks = (0 until 3).map(BlockIndex(1, _))
+
   def writePayload(checksum: String) =
-    WriteRequest(blocks = (1 until 16).flatMap { sector =>
-      (0 until 3).map { block =>
-        Block(sector, block, Array((sector * block).toByte) ++ hex("000000000000000000000000000000"))
-      }
+    WriteRequest(blocks = blocks.map { block =>
+      Block(block.sector, block.block, Array((block.sector * 4 + block.block).toByte) ++
+        hex("000000000000000000000000000000"))
     }, checksum = checksum)
 
   def write(checksum: String) = Put(FidesmoMifareWrite, writePayload(checksum)) ~> headers ~> callbackHeader
+
+  val read = Put(FidesmoMifareRead, ReadRequest(blocks = blocks)) ~> headers ~>
+    addHeader("callbackUrl", callbackUrlRead.toString)
 
   // Post message to signal successful service delivery
   val Success = Post(FidesmoServiceComplete, ServiceStatus(true, "Successfully delivered test service!")) ~> headers
@@ -92,37 +97,41 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with RequestBuildin
   def receive = {
     case Start =>
       // Send the first part of the delivery (here represented by a SELECT)
-      IO(Http) ! GetCard
+      IO(Http) ! getCard
       // Wait for the operation id from Fidesmo
       context.become(waitForOperationId(waitForCard))
   }
 
   def waitForCard(operationId: UUID): Receive = {
-    case GetCardResponse(opId, StatusCodes.OK, Some(uid), Some(true), Some(checksum)) =>
-      println("Initialize")
+    case GetCardResponse(opId, StatusCodes.OK, Some(uid), Some(true)) =>
       /* New card, need to initialize it with keys */
-      IO(Http) ! Initialize
-      context.become(waitForOperationId(waitForInitialization(checksum)))
-    case GetCardResponse(opId, StatusCodes.OK, Some(uid), Some(false), Some(checksum)) =>
+      IO(Http) ! initialize
+      context.become(waitForOperationId(waitForInitialization))
+    case GetCardResponse(opId, StatusCodes.OK, Some(uid), Some(false)) =>
       /* Existing card, no need to initialize it */
-      println("No initialize")
-      IO(Http) ! write(checksum)
-      context.become(waitForOperationId(waitForWrite))
-    case a =>
-      println("Wait card")
-      println(a)
+      IO(Http) ! read
+      context.become(waitForOperationId(waitForRead))
+    case _ =>
       /* Everything else is an error */
       complete(Failure)
   }
 
-  def waitForInitialization(checksum: String)(operationId: UUID): Receive = {
+  def waitForInitialization(operationId: UUID): Receive = {
     case GenericResponse(opId, StatusCodes.OK) =>
       /* Got it! */
+      IO(Http) ! read
+      context.become(waitForOperationId(waitForRead))
+    case _ =>
+      /* Everything else is an error */
+      complete(Failure)
+  }
+
+  def waitForRead(operationId: UUID): Receive = {
+    case ReadResponse(opId, StatusCodes.OK, blocks, checksum) =>
+      /* Read blocks and got checksum */
       IO(Http) ! write(checksum)
       context.become(waitForOperationId(waitForWrite))
-    case a =>
-      println("Wait init")
-      println(a)
+    case _ =>
       /* Everything else is an error */
       complete(Failure)
   }
@@ -131,9 +140,7 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with RequestBuildin
     case GenericResponse(opId, StatusCodes.OK) =>
       /* Write completed! */
       complete(Success)
-    case a =>
-      println("Wait write")
-      println(a)
+    case _ =>
       /* Everything else is an error */
       complete(Failure)
   }
