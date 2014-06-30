@@ -10,21 +10,29 @@ class WebServiceActor extends HttpServiceActor {
   import WebServiceActor._
   import Models._
 
-  val route = path("service") { // This path is for the service delivery required call
+  val route = path("description" / Segment) { serviceId => // This path is for the service description call
+    if(serviceId == "mifare") {
+      // Return the service description - this description is displayed on the user's phone
+      complete(ServiceDescription("Test service using MIFARE Classic API"))
+    } else if(serviceId == "transceive") {
+      // Return the service description - this description is displayed on the user's phone
+      complete(ServiceDescription("Test service using transceive API"))
+    } else {
+      complete(StatusCodes.NotFound)
+    }
+  } ~ path("service") { // This path is for the service delivery required call
     entity(as[ServiceDeliveryRequest]) { request =>
       val sessionId = request.sessionId
       if(request.serviceId == "mifare") {
         val deliveryActor = context.actorOf(MifareDeliveryActor.props(sessionId), sessionId.toString)
         // Start the delivery actor
         deliveryActor ! Start
-        // Return the service description - this description is displayed on the user's phone
-        complete(ServiceDescription("Test service using MIFARE Classic API"))
+        complete(StatusCodes.OK)
       } else if(request.serviceId == "transceive") {
         val deliveryActor = context.actorOf(TransceiveDeliveryActor.props(sessionId), sessionId.toString)
         // Start the delivery actor
         deliveryActor ! Start
-        // Return the service description - this description is displayed on the user's phone
-        complete(ServiceDescription("Test service using transceive API"))
+        complete(StatusCodes.OK)
       } else {
         complete(StatusCodes.NotFound)
       }
