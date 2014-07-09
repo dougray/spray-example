@@ -62,7 +62,7 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with RequestBuildin
 
   val TransportKeys = KeyPair(hex("FFFFFFFFFFFF"), hex("FFFFFFFFFFFF"))
 
-  val InitializePayload = InitializeRequest((0 until 16).map(Trailer(_, TransportKeys, DefaultAccess)))
+  val InitializePayload = InitializeRequest((0 until 16).map(Trailer(_, TransportKeys, DefaultAccess)), true)
 
   val initialize = Put(FidesmoMifareInitialize, InitializePayload) ~> headers ~>
     callbackHeader
