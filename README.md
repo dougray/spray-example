@@ -21,7 +21,7 @@ using the MIFARE Classic API (service ID: `mifare`):
   - awaiting the result
   - sending service completed
 
-The service delivery logic is implemented by two actors TransceiveDeliveryActor and MifareDeliveryActor.
+The service delivery logic is implemented by two actors TransceiveDeliveryActor and MifareDeliveryActor. There is also an alternative version of the mifare service, `mifare-pay`, which works just as the mifare service but has a price.
 
 Test server
 -----------
@@ -40,4 +40,4 @@ intent.setData(Uri.parse("https://api.fidesmo.com/service/e26b8f12/transceive"))
 startActivity(intent);
 ```
 The URI encodes the service provider `e26b8f12` and the service ID
-`transceive` - this example SP has two services, `transceive` and `mifare`.
+`transceive` - this example SP has three services, `transceive`, `mifare` and `mifare-pay`.

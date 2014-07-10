@@ -14,6 +14,9 @@ class WebServiceActor extends HttpServiceActor {
     if(serviceId == "mifare") {
       // Return the service description - this description is displayed on the user's phone
       complete(ServiceDescription("Test service using MIFARE Classic API"))
+    } else if(serviceId == "mifare-pay") {
+      // Return the service description - this description is displayed on the user's phone
+      complete(ServiceDescription("Test service using MIFARE Classic API with payment", Some(ServicePrice(BigDecimal("100.00")))))
     } else if(serviceId == "transceive") {
       // Return the service description - this description is displayed on the user's phone
       complete(ServiceDescription("Test service using transceive API"))
@@ -28,6 +31,18 @@ class WebServiceActor extends HttpServiceActor {
         // Start the delivery actor
         deliveryActor ! Start
         complete(StatusCodes.OK)
+      } else if(request.serviceId == "mifare-pay") {
+        // Verify that the price paid by the customer is the price of the service
+        if(request.description.price == Some(ServicePrice(BigDecimal("100.00")))) {
+          val deliveryActor = context.actorOf(MifareDeliveryActor.props(sessionId), sessionId.toString)
+          // Start the delivery actor
+          deliveryActor ! Start
+          complete(StatusCodes.OK)
+        } else {
+          // The customer has not paid the right price for the service or
+          // the price has changed
+          complete(StatusCodes.PaymentRequired)
+        }
       } else if(request.serviceId == "transceive") {
         val deliveryActor = context.actorOf(TransceiveDeliveryActor.props(sessionId), sessionId.toString)
         // Start the delivery actor
