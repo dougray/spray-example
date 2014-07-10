@@ -7,8 +7,9 @@ import spray.http.{ StatusCode, StatusCodes }
 import spray.json._
 
 object Models extends DefaultJsonProtocol {
-  case class ServiceDeliveryRequest(sessionId: UUID, serviceId: String)
-  case class ServiceDescription(title: String)
+  case class ServiceDeliveryRequest(sessionId: UUID, serviceId: String, description: ServiceDescription)
+  case class ServicePrice(total: BigDecimal)
+  case class ServiceDescription(title: String, price: Option[ServicePrice] = None)
   case class OperationResponse(operationId: UUID)
   case class ServiceStatus(success: Boolean, message: String)
 
@@ -61,8 +62,9 @@ object Models extends DefaultJsonProtocol {
     }
   }
 
-  implicit val serviceDeliveryRequestFormat = jsonFormat2(ServiceDeliveryRequest)
-  implicit val serviceDescriptionFormat = jsonFormat1(ServiceDescription)
+  implicit val servicePriceFormat = jsonFormat1(ServicePrice)
+  implicit val serviceDescriptionFormat = jsonFormat2(ServiceDescription)
+  implicit val serviceDeliveryRequestFormat = jsonFormat3(ServiceDeliveryRequest)
   implicit val operationResponseFormat = jsonFormat1(OperationResponse)
   implicit val serviceStatusFormat = jsonFormat2(ServiceStatus)
 
