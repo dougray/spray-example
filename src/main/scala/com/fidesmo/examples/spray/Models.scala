@@ -28,6 +28,9 @@ object Models extends DefaultJsonProtocol {
   case class ReadRequest(blocks: Seq[BlockIndex])
   case class ReadResponse(operationId: UUID, statusCode: StatusCode, blocks: Seq[Block], checksum: String)
 
+  case class CcmInstallRequest(executableLoadFile: String, executableModule: String,
+    application: String)
+
   implicit object StatusCodeFormat extends JsonFormat[StatusCode] {
     val errorMsg = "Integer status code expected"
     def write(statusCode: StatusCode) = JsNumber(statusCode.intValue)
@@ -81,4 +84,6 @@ object Models extends DefaultJsonProtocol {
   implicit val writeRequestFormat = jsonFormat2(WriteRequest)
   implicit val readRequestFormat = jsonFormat1(ReadRequest)
   implicit val readResponseFormat = jsonFormat4(ReadResponse)
+  implicit val ccmInstallRequestFormat = jsonFormat3(CcmInstallRequest)
+
 }

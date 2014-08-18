@@ -14,7 +14,7 @@ import spray.can.Http
 import spray.http._
 import spray.httpx._
 
-class MifareDeliveryActor(val sessionId: UUID) extends Actor with RequestBuilding with ResponseTransformation {
+class MifareDeliveryActor(val sessionId: UUID) extends Actor with DeliveryActor with RequestBuilding {
   import WebServiceActor.Start
   import spray.httpx.SprayJsonSupport._
   import Models._
@@ -86,7 +86,6 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with RequestBuildin
   // Post message to signal failed service delivery
   val Failure = Post(FidesmoServiceComplete, ServiceStatus(false, "Failed delivering test service.")) ~> headers
 
-  val unmarshalOperation = unmarshal[OperationResponse]
   implicit val timeout = Timeout(5, TimeUnit.SECONDS)
 
   def complete(message: HttpRequest) = {
@@ -145,13 +144,6 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with RequestBuildin
       complete(Failure)
   }
 
-  def waitForOperationId(nextState: UUID => Receive): Receive = {
-    case response: HttpResponse =>
-      // Get the operation id from the response
-      val operationId = unmarshalOperation(response).operationId
-      // Use the operation id
-      context.become(nextState(operationId))
-  }
 }
 
 object MifareDeliveryActor {
