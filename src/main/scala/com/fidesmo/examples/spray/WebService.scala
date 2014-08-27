@@ -23,6 +23,9 @@ class WebServiceActor extends HttpServiceActor {
     } else if(serviceId == "install") {
       // Return the service description - this description is displayed on the user's phone
       complete(ServiceDescription("Test service using ccm API"))
+    } else if(serviceId == "fail") {
+      // Return the service description - this description is displayed on the user's phone
+      complete(ServiceDescription("Test service that will fail"))
     } else {
       complete(StatusCodes.NotFound)
     }
@@ -53,6 +56,11 @@ class WebServiceActor extends HttpServiceActor {
         complete(StatusCodes.OK)
       } else if(request.serviceId == "install") {
         val deliveryActor = context.actorOf(InstallAppletDeliveryActor.props(sessionId), sessionId.toString)
+        // Start the delivery actor
+        deliveryActor ! Start
+        complete(StatusCodes.OK)
+      } else if(request.serviceId == "fail") {
+        val deliveryActor = context.actorOf(FailDeliveryActor.props(sessionId), sessionId.toString)
         // Start the delivery actor
         deliveryActor ! Start
         complete(StatusCodes.OK)
