@@ -43,19 +43,19 @@ class WebServiceActor extends HttpServiceActor {
       complete(StatusCodes.NotFound)
   } ~ path("service") { // This path is for the service delivery required call
     entity(as[ServiceDeliveryRequest]) {
-      case ServiceDeliveryRequest(sessionId, "mifare-pay", ServiceDescription(_, SomePrice, None)) =>
+      case ServiceDeliveryRequest(sessionId, "mifare-pay", ServiceDescription(_, SomePrice, _)) =>
         deliverService(context.actorOf(MifareDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "mifare", ServiceDescription(_, None, None)) =>
+      case ServiceDeliveryRequest(sessionId, "mifare", ServiceDescription(_, None, _)) =>
         deliverService(context.actorOf(MifareDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "transceive", ServiceDescription(_, None, None)) =>
+      case ServiceDeliveryRequest(sessionId, "transceive", ServiceDescription(_, None, _)) =>
         deliverService(context.actorOf(TransceiveDeliveryActor.props(sessionId), sessionId.toString))
       case ServiceDeliveryRequest(sessionId, "transceive-confirm", ServiceDescription(_, None, Some(true))) =>
         deliverService(context.actorOf(TransceiveDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "install", ServiceDescription(_, None, None)) =>
+      case ServiceDeliveryRequest(sessionId, "install", ServiceDescription(_, None, _)) =>
         deliverService(context.actorOf(InstallAppletDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "fail", ServiceDescription(_, None, None)) =>
+      case ServiceDeliveryRequest(sessionId, "fail", ServiceDescription(_, None, _)) =>
         deliverService(context.actorOf(FailDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "fail-pay", ServiceDescription(_, SomePrice, None)) =>
+      case ServiceDeliveryRequest(sessionId, "fail-pay", ServiceDescription(_, SomePrice, _)) =>
         deliverService(context.actorOf(FailDeliveryActor.props(sessionId), sessionId.toString))
       case _ =>
         complete(StatusCodes.NotFound)
