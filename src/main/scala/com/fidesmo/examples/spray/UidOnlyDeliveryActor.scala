@@ -48,7 +48,7 @@ class UidOnlyDeliveryActor(val sessionId: UUID) extends Actor with DeliveryActor
     addHeader("callbackUrl", callbackUrlGetCard.toString)
 
   // Post message to signal successful service delivery
-  val Success = Post(FidesmoServiceComplete, ServiceStatus(true, "Successfully delivered test service!")) ~> headers
+  def success(uid: String) = Post(FidesmoServiceComplete, ServiceStatus(true, s"Successfully delivered test service! ${uid}")) ~> headers
 
   // Post message to signal failed service delivery
   val Failure = Post(FidesmoServiceComplete, ServiceStatus(false, "Failed delivering test service.")) ~> headers
@@ -71,7 +71,7 @@ class UidOnlyDeliveryActor(val sessionId: UUID) extends Actor with DeliveryActor
   def waitForCard(operationId: UUID): Receive = {
     case GetCardResponse(opId, StatusCodes.OK, Some(uid), _) =>
       /* New card, need to initialize it with keys */
-      complete(Success)
+      complete(success(uid.map("%02X" format _).mkString))
     case _ =>
       /* Everything else is an error */
       complete(Failure)
