@@ -45,7 +45,8 @@ class WebServiceActor extends HttpServiceActor {
         requirements = Some(ServiceRequirements(
           fixedUid = Some("any"),
           javaCard = None,
-          mifare = None))))
+          mifare = None,
+          cardIssuer = None))))
     case _ =>
       complete(StatusCodes.NotFound)
   } ~ path("service") { // This path is for the service delivery required call
@@ -64,7 +65,7 @@ class WebServiceActor extends HttpServiceActor {
         deliverService(context.actorOf(FailDeliveryActor.props(sessionId), sessionId.toString))
       case ServiceDeliveryRequest(sessionId, "fail-pay", ServiceDescription(_, SomePrice, _, _)) =>
         deliverService(context.actorOf(FailDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "uid-only", ServiceDescription(_, None, _, Some(ServiceRequirements(Some("any"), None, None)))) =>
+      case ServiceDeliveryRequest(sessionId, "uid-only", ServiceDescription(_, None, _, Some(ServiceRequirements(Some("any"), None, None, None)))) =>
         deliverService(context.actorOf(UidOnlyDeliveryActor.props(sessionId), sessionId.toString))
       case _ =>
         complete(StatusCodes.NotFound)
@@ -86,6 +87,13 @@ class WebServiceActor extends HttpServiceActor {
   } ~ path("delivery" / "read" / JavaUUID) { sessionId =>
     val deliveryActor = context.actorSelection(sessionId.toString)
     entity(as[ReadResponse]) { response =>
+      // Send response to delivery actor
+      deliveryActor ! response
+      complete(StatusCodes.OK)
+    }
+  } ~ path("delivery" / "uidRegister" / JavaUUID) { sessionId =>
+    val deliveryActor = context.actorSelection(sessionId.toString)
+    entity(as[UidRegisterResponse]) { response =>
       // Send response to delivery actor
       deliveryActor ! response
       complete(StatusCodes.OK)
