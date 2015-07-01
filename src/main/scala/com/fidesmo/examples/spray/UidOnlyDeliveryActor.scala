@@ -22,9 +22,9 @@ class UidOnlyDeliveryActor(val sessionId: UUID) extends Actor with DeliveryActor
   implicit val system = context.system
   implicit val executionContext = context.dispatcher
 
-  // Fidesmo api endpoints for managing MIFARE
-  val FidesmoMifareBase = "https://api.fidesmo.com/mifare/"
-  val FidesmoMifareGet = Uri(s"${FidesmoMifareBase}get")
+  // Fidesmo api endpoints for managing uid delivery
+  val FidesmoUidBase = "https://api.fidesmo.com/uid/"
+  val FidesmoUidRegister = Uri(s"${FidesmoUidBase}register")
 
   // Fidesmo api endpoint for completing the service delivery
   val FidesmoServiceComplete = Uri("https://api.fidesmo.com/service/completed")
@@ -37,15 +37,15 @@ class UidOnlyDeliveryActor(val sessionId: UUID) extends Actor with DeliveryActor
   val baseUrl = Uri(config.getString("callback-url-base"))
 
   // Create an individual callback URL for each session
-  val callbackUrlGetCard = baseUrl.withPath(baseUrl.path / "getCard" / sessionId.toString)
+  val callbackUrlRegisterCard = baseUrl.withPath(baseUrl.path / "uidRegister" / sessionId.toString)
 
   // Adds authentication and session id headers
   val headers = addHeader("app_id", appId) ~> addHeader("app_key", appKey) ~>
      addHeader("sessionId", sessionId.toString)
 
   // Post message to get a mifare card
-  val getCard = Put(FidesmoMifareGet) ~> headers ~>
-    addHeader("callbackUrl", callbackUrlGetCard.toString)
+  val registerCard = Post(FidesmoUidRegister) ~> headers ~>
+    addHeader("callbackUrl", callbackUrlRegisterCard.toString)
 
   // Post message to signal successful service delivery
   def success(uid: String) = Post(FidesmoServiceComplete, ServiceStatus(true, s"Successfully delivered test service! ${uid}")) ~> headers
@@ -63,15 +63,19 @@ class UidOnlyDeliveryActor(val sessionId: UUID) extends Actor with DeliveryActor
   def receive = {
     case Start =>
       // Send the first part of the delivery (here represented by a SELECT)
-      IO(Http) ! getCard
+      IO(Http) ! registerCard
       // Wait for the operation id from Fidesmo
       context.become(waitForOperationId(waitForCard))
   }
 
   def waitForCard(operationId: UUID): Receive = {
-    case GetCardResponse(opId, StatusCodes.OK, Some(uid), _) =>
+    case UidRegisterResponse(opId, StatusCodes.OK, Some(uid), Some(newFlag)) =>
       /* New card, need to initialize it with keys */
-      complete(success(uid.map("%02X" format _).mkString))
+      if (newFlag) {
+        complete(success(s"New card with id ${uid}."))
+      } else {
+        complete(success(s"Old card with id ${uid}."))
+      }
     case _ =>
       /* Everything else is an error */
       complete(Failure)

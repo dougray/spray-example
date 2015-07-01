@@ -12,7 +12,9 @@ object Models extends DefaultJsonProtocol {
   case class ServiceRequirements(
     fixedUid: Option[String],
     javaCard: Option[String],
-    mifare: Option[String])
+    mifare: Option[String],
+    cardIssuer: Option[Long]
+  )
 
   case class ServiceDescription(title: String, price: Option[ServicePrice] = None,
     confirmationRequired: Option[Boolean] = None, requirements: Option[ServiceRequirements] = None)
@@ -33,6 +35,8 @@ object Models extends DefaultJsonProtocol {
   case class WriteRequest(blocks: Seq[Block], checksum: String)
   case class ReadRequest(blocks: Seq[BlockIndex])
   case class ReadResponse(operationId: UUID, statusCode: StatusCode, blocks: Seq[Block], checksum: String)
+
+  case class UidRegisterResponse(operationId: String, statusCode: StatusCode, uid: Option[String], newCard: Option[Boolean])
 
   case class CcmInstallRequest(executableLoadFile: String, executableModule: String,
     application: String)
@@ -72,7 +76,7 @@ object Models extends DefaultJsonProtocol {
   }
 
   implicit val servicePriceFormat = jsonFormat1(ServicePrice)
-  implicit val serviceRequirementsFormat = jsonFormat3(ServiceRequirements)
+  implicit val serviceRequirementsFormat = jsonFormat4(ServiceRequirements)
   implicit val serviceDescriptionFormat = jsonFormat4(ServiceDescription)
   implicit val serviceDeliveryRequestFormat = jsonFormat3(ServiceDeliveryRequest)
   implicit val operationResponseFormat = jsonFormat1(OperationResponse)
@@ -93,4 +97,5 @@ object Models extends DefaultJsonProtocol {
   implicit val readResponseFormat = jsonFormat4(ReadResponse)
   implicit val ccmInstallRequestFormat = jsonFormat3(CcmInstallRequest)
 
+  implicit val uidRegisterResponseFormat = jsonFormat4(UidRegisterResponse)
 }
