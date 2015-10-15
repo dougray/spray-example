@@ -8,7 +8,6 @@ import spray.json._
 
 object Models extends DefaultJsonProtocol {
   case class ServiceDeliveryRequest(sessionId: UUID, serviceId: String, description: ServiceDescription)
-  case class ServicePrice(total: BigDecimal)
   case class ServiceRequirements(
     fixedUid: Option[String],
     javaCard: Option[String],
@@ -16,7 +15,7 @@ object Models extends DefaultJsonProtocol {
     cardIssuer: Option[Long]
   )
 
-  case class ServiceDescription(title: String, price: Option[ServicePrice] = None,
+  case class ServiceDescription(title: String,
     confirmationRequired: Option[Boolean] = None, requirements: Option[ServiceRequirements] = None)
   case class OperationResponse(operationId: UUID)
   case class ServiceStatus(success: Boolean, message: String)
@@ -75,9 +74,8 @@ object Models extends DefaultJsonProtocol {
     }
   }
 
-  implicit val servicePriceFormat = jsonFormat1(ServicePrice)
   implicit val serviceRequirementsFormat = jsonFormat4(ServiceRequirements)
-  implicit val serviceDescriptionFormat = jsonFormat4(ServiceDescription)
+  implicit val serviceDescriptionFormat = jsonFormat3(ServiceDescription)
   implicit val serviceDeliveryRequestFormat = jsonFormat3(ServiceDeliveryRequest)
   implicit val operationResponseFormat = jsonFormat1(OperationResponse)
   implicit val serviceStatusFormat = jsonFormat2(ServiceStatus)
