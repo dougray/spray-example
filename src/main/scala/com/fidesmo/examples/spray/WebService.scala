@@ -31,7 +31,11 @@ class WebServiceActor extends HttpServiceActor {
         complete(ServiceDescription("Test service using transceive API", Some(true)))
     case "install" =>
       // Return the service description - this description is displayed on the user's phone
-      complete(ServiceDescription("Test service using ccm API"))
+      complete(ServiceDescription("Test service using ccm API", requirements = Some(ServiceRequirements(
+          fixedUid = None,
+          javaCard = None,
+          mifare = None,
+          cardIssuer = None))))
     case "fail" =>
       // Return the service description - this description is displayed on the user's phone
         complete(ServiceDescription("Test service that will fail"))
