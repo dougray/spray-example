@@ -33,7 +33,6 @@ class WebServiceActor extends HttpServiceActor {
       // Return the service description - this description is displayed on the user's phone
       complete(ServiceDescription("Test service using ccm API", requirements = Some(ServiceRequirements(
           fixedUid = None,
-          javaCard = None,
           mifare = None,
           cardIssuer = None))))
     case "fail" =>
@@ -47,7 +46,6 @@ class WebServiceActor extends HttpServiceActor {
       complete(ServiceDescription("Test service can be delivered without nfc",
         requirements = Some(ServiceRequirements(
           fixedUid = Some("any"),
-          javaCard = None,
           mifare = None,
           cardIssuer = None))))
     case _ =>
@@ -68,7 +66,7 @@ class WebServiceActor extends HttpServiceActor {
         deliverService(context.actorOf(FailDeliveryActor.props(sessionId), sessionId.toString))
       case ServiceDeliveryRequest(sessionId, "fail-pay", ServiceDescription(_, _, _)) =>
         deliverService(context.actorOf(FailDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "uid-only", ServiceDescription(_, _, Some(ServiceRequirements(Some("any"), None, None, None)))) =>
+      case ServiceDeliveryRequest(sessionId, "uid-only", ServiceDescription(_, _, Some(ServiceRequirements(Some("any"), None, None)))) =>
         deliverService(context.actorOf(UidOnlyDeliveryActor.props(sessionId), sessionId.toString))
       case _ =>
         complete(StatusCodes.NotFound)

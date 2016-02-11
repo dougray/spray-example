@@ -10,7 +10,6 @@ object Models extends DefaultJsonProtocol {
   case class ServiceDeliveryRequest(sessionId: UUID, serviceId: String, description: ServiceDescription)
   case class ServiceRequirements(
     fixedUid: Option[String],
-    javaCard: Option[String],
     mifare: Option[String],
     cardIssuer: Option[Long]
   )
@@ -74,7 +73,7 @@ object Models extends DefaultJsonProtocol {
     }
   }
 
-  implicit val serviceRequirementsFormat = jsonFormat4(ServiceRequirements)
+  implicit val serviceRequirementsFormat = jsonFormat3(ServiceRequirements)
   implicit val serviceDescriptionFormat = jsonFormat3(ServiceDescription)
   implicit val serviceDeliveryRequestFormat = jsonFormat3(ServiceDeliveryRequest)
   implicit val operationResponseFormat = jsonFormat1(OperationResponse)
