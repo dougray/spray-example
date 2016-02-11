@@ -10,6 +10,11 @@ class WebServiceActor extends HttpServiceActor {
   import WebServiceActor._
   import Models._
 
+  private val NoRequirements = ServiceRequirements(
+    fixedUid = None,
+    mifare = None,
+    cardIssuer = None)
+
   private def deliverService(actor: ActorRef) = {
     // Start the delivery actor
     actor ! Start
@@ -25,22 +30,19 @@ class WebServiceActor extends HttpServiceActor {
       complete(ServiceDescription("Test service using MIFARE Classic API with payment"))
     case "transceive" =>
       // Return the service description - this description is displayed on the user's phone
-        complete(ServiceDescription("Test service using transceive API"))
+        complete(ServiceDescription("Test service using transceive API", requirements = Some(NoRequirements)))
     case "transceive-confirm" =>
       // Return the service description - this description is displayed on the user's phone
-        complete(ServiceDescription("Test service using transceive API", Some(true)))
+        complete(ServiceDescription("Test service using transceive API", Some(true), requirements = Some(NoRequirements)))
     case "install" =>
       // Return the service description - this description is displayed on the user's phone
-      complete(ServiceDescription("Test service using ccm API", requirements = Some(ServiceRequirements(
-          fixedUid = None,
-          mifare = None,
-          cardIssuer = None))))
+      complete(ServiceDescription("Test service using ccm API", requirements = Some(NoRequirements)))
     case "fail" =>
       // Return the service description - this description is displayed on the user's phone
-        complete(ServiceDescription("Test service that will fail"))
+        complete(ServiceDescription("Test service that will fail", requirements = Some(NoRequirements)))
     case "fail-pay" =>
       // Return the service description - this description is displayed on the user's phone
-      complete(ServiceDescription("Test service with payment that will fail"))
+      complete(ServiceDescription("Test service with payment that will fail", requirements = Some(NoRequirements)))
     case "uid-only" =>
       // Return the service description - this description is displayed on the user's phone
       complete(ServiceDescription("Test service can be delivered without nfc",
