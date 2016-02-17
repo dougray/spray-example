@@ -27,7 +27,7 @@ class WebServiceActor extends HttpServiceActor {
       complete(ServiceDescription("Test service using MIFARE Classic API"))
     case "mifare-pay" =>
       // Return the service description - this description is displayed on the user's phone
-      complete(ServiceDescription("Test service using MIFARE Classic API with payment"))
+      complete(ServiceDescription("Test service using MIFARE Classic API with payment", redeliveryIsFree = Some(true)))
     case "transceive" =>
       // Return the service description - this description is displayed on the user's phone
         complete(ServiceDescription("Test service using transceive API", requirements = Some(NoRequirements)))
@@ -54,21 +54,21 @@ class WebServiceActor extends HttpServiceActor {
       complete(StatusCodes.NotFound)
   } ~ path("service") { // This path is for the service delivery required call
     entity(as[ServiceDeliveryRequest]) {
-      case ServiceDeliveryRequest(sessionId, "mifare-pay", ServiceDescription(_, _, _)) =>
+      case ServiceDeliveryRequest(sessionId, "mifare-pay", ServiceDescription(_, _, _, _)) =>
         deliverService(context.actorOf(MifareDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "mifare", ServiceDescription(_, _, _)) =>
+      case ServiceDeliveryRequest(sessionId, "mifare", ServiceDescription(_, _, _, _)) =>
         deliverService(context.actorOf(MifareDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "transceive", ServiceDescription(_, _, _)) =>
+      case ServiceDeliveryRequest(sessionId, "transceive", ServiceDescription(_, _, _, _)) =>
         deliverService(context.actorOf(TransceiveDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "transceive-confirm", ServiceDescription(_, Some(true), _)) =>
+      case ServiceDeliveryRequest(sessionId, "transceive-confirm", ServiceDescription(_, Some(true), _, _)) =>
         deliverService(context.actorOf(TransceiveDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "install", ServiceDescription(_, _, _)) =>
+      case ServiceDeliveryRequest(sessionId, "install", ServiceDescription(_, _, _, _)) =>
         deliverService(context.actorOf(InstallAppletDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "fail", ServiceDescription(_, _, _)) =>
+      case ServiceDeliveryRequest(sessionId, "fail", ServiceDescription(_, _, _, _)) =>
         deliverService(context.actorOf(FailDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "fail-pay", ServiceDescription(_, _, _)) =>
+      case ServiceDeliveryRequest(sessionId, "fail-pay", ServiceDescription(_, _, _, _)) =>
         deliverService(context.actorOf(FailDeliveryActor.props(sessionId), sessionId.toString))
-      case ServiceDeliveryRequest(sessionId, "uid-only", ServiceDescription(_, _, Some(ServiceRequirements(Some("any"), None, None)))) =>
+      case ServiceDeliveryRequest(sessionId, "uid-only", ServiceDescription(_, _, Some(ServiceRequirements(Some("any"), None, None)), _)) =>
         deliverService(context.actorOf(UidOnlyDeliveryActor.props(sessionId), sessionId.toString))
       case _ =>
         complete(StatusCodes.NotFound)
