@@ -13,7 +13,7 @@ object Models extends DefaultJsonProtocol {
     mifare: Option[String],
     cardIssuer: Option[Long]
   )
-
+  case class MifareGetCard(sectors: Int)
   case class ServiceDescription(title: String,
     confirmationRequired: Option[Boolean] = None, requirements: Option[ServiceRequirements] = None)
   case class OperationResponse(operationId: UUID)
@@ -78,6 +78,7 @@ object Models extends DefaultJsonProtocol {
   implicit val serviceDeliveryRequestFormat = jsonFormat3(ServiceDeliveryRequest)
   implicit val operationResponseFormat = jsonFormat1(OperationResponse)
   implicit val serviceStatusFormat = jsonFormat2(ServiceStatus)
+  implicit val mifareGetCardFormat = jsonFormat1(MifareGetCard)
 
   implicit val transceiveFormat = jsonFormat1(Transceive)
   implicit val transceiveResponseFormat = jsonFormat3(TransceiveResponse)
