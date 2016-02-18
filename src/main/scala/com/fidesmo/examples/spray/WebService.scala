@@ -24,10 +24,10 @@ class WebServiceActor extends HttpServiceActor {
   val route = path("description" / Segment) {
     case "mifare" =>
       // Return the service description - this description is displayed on the user's phone
-      complete(ServiceDescription("Test service using MIFARE Classic API"))
+      complete(ServiceDescription("Test service using MIFARE Classic API", requirements = Some(NoRequirements.copy(mifare=Some("any")))))
     case "mifare-pay" =>
       // Return the service description - this description is displayed on the user's phone
-      complete(ServiceDescription("Test service using MIFARE Classic API with payment", redeliveryIsFree = Some(true)))
+      complete(ServiceDescription("Test service using MIFARE Classic API with payment", requirements = Some(NoRequirements.copy(mifare=Some("any"))), redeliveryIsFree = Some(true)))
     case "transceive" =>
       // Return the service description - this description is displayed on the user's phone
         complete(ServiceDescription("Test service using transceive API", requirements = Some(NoRequirements)))
