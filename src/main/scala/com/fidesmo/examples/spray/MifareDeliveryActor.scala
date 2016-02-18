@@ -14,7 +14,7 @@ import spray.can.Http
 import spray.http._
 import spray.httpx._
 
-class MifareDeliveryActor(val sessionId: UUID) extends Actor with DeliveryActor with RequestBuilding {
+class MifareDeliveryActor(val sessionId: UUID, sectors: Int) extends Actor with DeliveryActor with RequestBuilding {
   import WebServiceActor.Start
   import spray.httpx.SprayJsonSupport._
   import Models._
@@ -53,7 +53,7 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with DeliveryActor 
   val callbackHeader = addHeader("callbackUrl", callbackUrl.toString)
 
   // Post message to get a mifare card
-  val getCard = Post(FidesmoMifareGet, MifareGetCard(16)) ~> headers ~>
+  val getCard = Post(FidesmoMifareGet, MifareGetCard(sectors)) ~> headers ~>
     addHeader("callbackUrl", callbackUrlGetCard.toString)
 
   def hex(s: String): Array[Byte] = Hex.decodeHex(s.toCharArray)
@@ -62,7 +62,7 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with DeliveryActor 
 
   val TransportKeys = KeyPair(hex("FFFFFFFFFFFF"), hex("FFFFFFFFFFFF"))
 
-  val InitializePayload = InitializeRequest((0 until 16).map(Trailer(_, TransportKeys, DefaultAccess)), true)
+  val InitializePayload = InitializeRequest((0 until sectors).map(Trailer(_, TransportKeys, DefaultAccess)), true)
 
   val initialize = Put(FidesmoMifareInitialize, InitializePayload) ~> headers ~>
     callbackHeader
@@ -147,5 +147,5 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with DeliveryActor 
 }
 
 object MifareDeliveryActor {
-  def props(sessionId: UUID) = Props(classOf[MifareDeliveryActor], sessionId)
+  def props(sessionId: UUID, sectors: Int) = Props(classOf[MifareDeliveryActor], sessionId, sectors)
 }
