@@ -53,7 +53,7 @@ class MifareDeliveryActor(val sessionId: UUID) extends Actor with DeliveryActor 
   val callbackHeader = addHeader("callbackUrl", callbackUrl.toString)
 
   // Post message to get a mifare card
-  val getCard = Put(FidesmoMifareGet) ~> headers ~>
+  val getCard = Post(FidesmoMifareGet, MifareGetCard(16)) ~> headers ~>
     addHeader("callbackUrl", callbackUrlGetCard.toString)
 
   def hex(s: String): Array[Byte] = Hex.decodeHex(s.toCharArray)
