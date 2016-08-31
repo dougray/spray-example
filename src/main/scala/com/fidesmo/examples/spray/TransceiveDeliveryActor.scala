@@ -45,7 +45,7 @@ class TransceiveDeliveryActor(val sessionId: UUID) extends Actor with RequestBui
   val callbackHeader = addHeader("callbackUrl", callbackUrl.toString)
 
   // Post message to transceive a simple select
-  val transceive = Post(FidesmoTransceiveApi, Transceive(Seq(Hex.decodeHex("00A4040000".toCharArray)))) ~> headers ~>
+  val transceive = Post(FidesmoTransceiveApi, Transceive(Seq(Hex.decodeHex("00A4040008A00000015100000000".toCharArray)))) ~> headers ~>
     callbackHeader
 
   // Post message to signal successful service delivery
